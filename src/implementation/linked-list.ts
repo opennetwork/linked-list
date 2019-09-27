@@ -37,7 +37,7 @@ export abstract class AbstractLinkedList<T> implements LinkedList<T> {
     }
     const reference = after && this.get(after);
     if (after && !reference) {
-      throw new Error("Index does not belong in this list");
+      throw new Error("Pointer does not belong in this list");
     }
     this.map.set(pointer, {
       value,
