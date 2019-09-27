@@ -5,10 +5,22 @@ export interface AbstractMap<T> {
   set(index: object, value: T): void;
 }
 
+function insertMany<T>(list: LinkedList<T>, afterIndex: object, many: Map<object, T>) {
+  const entryArray = Array.from(many.entries());
+  entryArray.forEach(
+    ([index, value], arrayIndex, array) => {
+      const before = array[arrayIndex - 1];
+      list.insert(before ? before[0] : afterIndex, index, value);
+    }
+  );
+}
+
 export abstract class AbstractLinkedList<T> implements LinkedList<T> {
 
-  protected constructor(private map: AbstractMap<LinkedListValue<T>>) {
-
+  protected constructor(private map: AbstractMap<LinkedListValue<T>>, initial?: Map<object, T>) {
+    if (initial) {
+      insertMany(this, undefined, initial);
+    }
   }
 
   protected setMap(map: AbstractMap<LinkedListValue<T>>) {
