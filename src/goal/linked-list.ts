@@ -1,11 +1,11 @@
-export interface LinkedListValue<T> {
+export interface Node<T> {
   value: T;
   next?: object;
 }
 
 export interface LinkedList<T> {
-  get(index: object): LinkedListValue<T>;
-  insert(afterIndex: object, index: object, value: T): void;
+  get(pointer: object): Node<T>;
+  insert(after: object, pointer: object, value: T): void;
   clear(): void;
 }
 

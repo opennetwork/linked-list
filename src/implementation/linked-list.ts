@@ -1,4 +1,4 @@
-import { LinkedList, LinkedListValue } from "../goal/linked-list";
+import { LinkedList, Node } from "../goal/linked-list";
 
 export interface AbstractMap<T> {
   get(index: object): T;
@@ -17,36 +17,36 @@ function insertMany<T>(list: LinkedList<T>, afterIndex: object, many: Map<object
 
 export abstract class AbstractLinkedList<T> implements LinkedList<T> {
 
-  protected constructor(private map: AbstractMap<LinkedListValue<T>>, initial?: Map<object, T>) {
+  protected constructor(private map: AbstractMap<Node<T>>, initial?: Map<object, T>) {
     if (initial) {
       insertMany(this, undefined, initial);
     }
   }
 
-  protected setMap(map: AbstractMap<LinkedListValue<T>>) {
+  protected setMap(map: AbstractMap<Node<T>>) {
     this.map = map;
   }
 
-  get(index: object): LinkedListValue<T> {
-    return this.map.get(index);
+  get(pointer: object): Node<T> {
+    return this.map.get(pointer);
   }
 
-  insert(afterIndex: object, index: object, value: T): void {
-    if (!afterIndex) {
+  insert(after: object, pointer: object, value: T): void {
+    if (!after) {
       this.clear();
     }
-    const reference = afterIndex && this.get(afterIndex);
-    if (afterIndex && !reference) {
+    const reference = after && this.get(after);
+    if (after && !reference) {
       throw new Error("Index does not belong in this list");
     }
-    this.map.set(index, {
+    this.map.set(pointer, {
       value,
       next: reference ? reference.next : undefined
     });
-    if (afterIndex) {
-      this.map.set(afterIndex, {
+    if (after) {
+      this.map.set(after, {
         ...reference,
-        next: index
+        next: pointer
       });
     }
   }
