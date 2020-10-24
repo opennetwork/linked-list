@@ -31,6 +31,18 @@ export abstract class AbstractLinkedList<T> implements LinkedList<T> {
     return this.map.get(pointer);
   }
 
+  set(pointer: object, value: T): void {
+    const node = this.get(pointer);
+    if (node) {
+      this.map.set(pointer, {
+        ...node,
+        value
+      });
+    } else {
+      throw new Error("Pointer does not belong in this list");
+    }
+  }
+
   insert(after: object, pointer: object, value: T): void {
     if (!after) {
       this.clear();
