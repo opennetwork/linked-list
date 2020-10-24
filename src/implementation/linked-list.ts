@@ -1,7 +1,7 @@
 import { LinkedList, Node } from "../goal/linked-list";
 
 export interface AbstractMap<T> {
-  get(index: object): T;
+  get(index: object): T | undefined;
   set(index: object, value: T): void;
 }
 
@@ -27,7 +27,7 @@ export abstract class AbstractLinkedList<T> implements LinkedList<T> {
     this.map = map;
   }
 
-  get(pointer: object): Node<T> {
+  get(pointer: object): Node<T> | undefined {
     return this.map.get(pointer);
   }
 
