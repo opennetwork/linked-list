@@ -2,59 +2,68 @@ import FileHound from "filehound";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
+//
+// const packages = await FileHound.create()
+//     .paths(`packages`)
+//     .directory()
+//     .depth(1)
+//     .find();
+//
+// const paths = packages.map(packageName => `${packageName}/lib`)
 
-const filePaths = await FileHound.create()
-  .paths("./dist")
-  .discard("node_modules")
-  .ext("js")
-  .find();
+const paths = ['dist'];
 
-await Promise.all(
-  filePaths.map(
-    async filePath => {
+for (const packagePath of paths) {
+    const filePaths = await FileHound.create()
+        .paths(packagePath)
+        .discard("node_modules")
+        .ext("js")
+        .find()
 
-      let contents = await promisify(fs.readFile)(
-        filePath,
-        "utf-8"
-      );
+    await Promise.all(
+        filePaths.map(
+            async filePath => {
 
-      const statements = contents.match(/(import|export) .+ from ".+";/g);
+                let contents = await promisify(fs.readFile)(
+                    filePath,
+                    "utf-8"
+                );
 
-      if (!statements) {
-        return;
-      }
+                const statements = contents.match(/(import|export) .+ from ".+";/g);
 
-      await Promise.all(
-        statements.map(
-          async statement => {
-            const url = statement.match(/"(.+)";/)[1];
-            if (url.indexOf(".") !== 0) {
-              return;
+                if (!statements) {
+                    return;
+                }
+
+                await Promise.all(
+                    statements.map(
+                        async statement => {
+                            const url = statement.match(/"(.+)";/)[1];
+                            if (url.indexOf(".") !== 0) {
+                                return;
+                            }
+                            const [stat, indexStat] = await Promise.all([
+                                promisify(fs.stat)(path.resolve(path.dirname(filePath), url + ".js")).catch(() => {}),
+                                promisify(fs.stat)(path.resolve(path.dirname(filePath), url + "/index.js")).catch(() => {})
+                            ]);
+                            if (stat && stat.isFile()) {
+                                contents = contents.replace(
+                                    statement,
+                                    statement.replace(url, url + ".js")
+                                );
+                            } else if (indexStat && indexStat.isFile()) {
+                                contents = contents.replace(
+                                    statement,
+                                    statement.replace(url, url + "/index.js")
+                                );
+                            }
+                        }
+                    )
+                );
+
+                await promisify(fs.writeFile)(filePath, contents, "utf-8");
+
             }
-            const [stat, indexStat] = await Promise.all([
-              promisify(fs.stat)(path.resolve(path.dirname(filePath), url + ".js")).catch(() => {}),
-              promisify(fs.stat)(path.resolve(path.dirname(filePath), url + "/index.js")).catch(() => {})
-            ]);
-            if (stat && stat.isFile()) {
-              contents = contents.replace(
-                statement,
-                statement.replace(url, url + ".js")
-              );
-            } else if (indexStat && indexStat.isFile()) {
-              contents = contents.replace(
-                statement,
-                statement.replace(url, url + "/index.js")
-              );
-            }
-          }
         )
-      );
-
-      await promisify(fs.writeFile)(filePath, contents, "utf-8");
-
-    }
-  )
-);
-
-console.log("Complete");
-
+    );
+}
